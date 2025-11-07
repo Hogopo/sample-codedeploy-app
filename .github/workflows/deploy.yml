@@ -20,7 +20,12 @@ jobs:
           aws-region: us-east-2
 
       - name: Create revision zip
-        run: zip -r deployment.zip . -x "*.git*"
+        run: |
+          # Remove any old zip
+          rm -f deployment.zip
+          # Add all files in repo root without parent directories
+          cd $GITHUB_WORKSPACE
+          zip -r ../deployment.zip * -x "*.git*"  
 
       - name: Push revision to S3
         run: aws s3 cp deployment.zip s3://marketingcalc-deployments-d53c9c0c/deployment.zip
