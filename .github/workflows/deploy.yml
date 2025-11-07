@@ -25,9 +25,9 @@ jobs:
       - name: Push revision to S3
         run: aws s3 cp deployment.zip arn:aws:s3:::marketingcalc-deployments-d53c9c0c/deployment.zip
 
-      - name: Deploy via CodeDeploy
+- name: Deploy via CodeDeploy
         run: |
           aws deploy create-deployment \
-            --application-name sample-app \
-            --deployment-group-name sample-deploy-group \
+            --application-name marketingcalc-app  \
+            --deployment-group-name marketingcalc-app-frontend-group \
             --s3-location bucket=arn:aws:s3:::marketingcalc-deployments-d53c9c0c,key=deployment.zip,bundleType=zip
