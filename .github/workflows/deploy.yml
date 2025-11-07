@@ -1,4 +1,4 @@
-name: Deploy to AWS EC2 via CodeDeploy
+name: Deploy Frontend to AWS EC2 via CodeDeploy
 
 on:
   push:
@@ -9,9 +9,11 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      # 1️⃣ Checkout the repository
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # 2️⃣ Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -19,15 +21,26 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
+      # 3️⃣ Optional: List files (debug)
+      - name: List repository files
+        run: ls -la
+
+      # 4️⃣ Create deployment zip
       - name: Create revision zip
-        run: zip -r deployment.zip . -x "*.git*"
+        run: |
+          # Remove old zip if exists
+          rm -f deployment.zip
+          # Zip all repo files except .git folder
+          zip -r deployment.zip * -x "*.git*"
 
-      - name: Push revision to S3
-        run: aws s3 cp deployment.zip arn:aws:s3:::marketingcalc-deployments-d53c9c0c/deployment.zip
+      # 5️⃣ Upload zip to S3
+      - name: Upload revision to S3
+        run: aws s3 cp deployment.zip s3://marketingcalc-deployments-d53c9c0c/deployment.zip
 
+      # 6️⃣ Deploy via CodeDeploy
       - name: Deploy via CodeDeploy
         run: |
           aws deploy create-deployment \
-            --application-name sample-app \
-            --deployment-group-name sample-deploy-group \
-            --s3-location bucket=arn:aws:s3:::marketingcalc-deployments-d53c9c0c,key=deployment.zip,bundleType=zip
+            --application-name marketingcalc-app \
+            --deployment-group-name marketingcalc-app-frontend-group \
+            --s3-location bucket=marketingcalc-deployments-d53c9c0c,key=deployment.zip,bundleType=zip
